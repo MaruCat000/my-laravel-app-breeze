@@ -72,7 +72,7 @@ erDiagram
 画面遷移図・シーケンス図は [mermaid/](mermaid/) にまとめています。
 
 - [mermaid/flowchart.md](mermaid/flowchart.md) — 画面遷移フロー
-- [mermaid/sequenceDiagram.md](mermaid/sequenceDiagram.md) — 新規登録 / ログインのシーケンス
+- [mermaid/sequenceDiagram.md](mermaid/sequenceDiagram.md) — 新規登録 / ログイン / ログアウトのシーケンス
 - [mermaid/erDiagram.md](mermaid/erDiagram.md) — ER 図
 
 ## セットアップ

@@ -7,7 +7,8 @@ use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+// 20261009 sha256を使わなくなったので不要になる
+// use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
@@ -31,7 +32,8 @@ class NewPasswordController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        // 20261019 $validatedに受け取らないと下で使えない
+        $validated = $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -42,10 +44,21 @@ class NewPasswordController extends Controller
         // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user) use ($request) {
+            // 20261019 クロージャの中で$validatedを使うのでuseに追加する
+            function (User $user) use ($validated) {
+
+                // 20261009 Seederで解決してBcryptにしたのでここのsha256をもどす
+                // pswに関して、ハッシュ化して保存する
+                //$inputPassword = hash("sha256", $request->input('password'));
+            
                 $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
+                    // 20261007 ここを書き換える：hash256にあわせる
+                    // 20261009 Seederで解決してBcryptにしたのでここのsha256をもどす
+                    //'password' => $request -> password,
+                    // 20261009 せっかくなのでヴァリデーション済みの値をつかう
+                    'password' => $validated['password'],
+                    // 20261019 usersテーブルにremember_tokenカラムがないのでコメントアウト（あるとSQLエラーになる）
+                    //'remember_token' => Str::random(60),
                 ])->save();
 
                 event(new PasswordReset($user));

@@ -57,6 +57,9 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            // 20261007 ここを書き換える：hash256にあわせる
+            // 20261007 ここが問題。二重ハッシュになっているので、コメントアウトする
+            // 20261009 Seederを直したので、コメントアウトは戻す
             'password' => 'hashed',
         ];
     }

@@ -91,12 +91,14 @@ class UserController extends Controller
         ]);
 
         $usermail = $request->input('mail');
-        $inputPassword = hash("sha256", $request->input('psw'));
+        // 20261009 Seederで解決してBcryptにしたのでここのsha256を変更する
+        //$inputPassword = hash("sha256", $request->input('psw'));
 
         // ポイント：PDOを使わず Userモデル（Eloquent）で検索
         // Laravelが自動でプリペアドステートメントにしてくれるので安全
         $user = User::where('email', $usermail)
-                    ->where('password', $inputPassword)
+                    // 20261009 Seederで解決してBcryptにしたのでここのsha256を変更する
+                    // ->where('password', $user)
                     ->first();
 
         if ($user) {
@@ -197,10 +199,12 @@ class UserController extends Controller
         $user->last_name = $request->lname;
         $user->email = $request->email;
         
+        // 20261009 Seederで解決してBcryptにしたのでここのsha256をもどす
         // pswに関して、ハッシュ化して保存する
-        $inputPassword = hash("sha256", $request->input('psw'));
+        //$inputPassword = hash("sha256", $request->input('psw'));
 
-        $user->password = $inputPassword;
+        //$user->password = $inputPassword;
+        $user->password = $request -> paasword;
         $user->save();
 
         // ユーザー一覧に飛んだらよさそう

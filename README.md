@@ -131,23 +131,33 @@ php artisan key:generate
 
 > `DB_USERNAME=root` / `DB_PASSWORD=`（空）は XAMPP の初期設定です。
 
-### 4. データベースの作成
+### 4. テーブル作成と初期データ投入
 
-phpMyAdmin などで `twitter` データベースを作成してから、マイグレーションを実行します。
+phpMyAdmin などで `twitter` データベースを作成してから、マイグレーションとシーディングを実行します。
 
 ```bash
-php artisan migrate
+php artisan migrate --seed
 ```
+
+初期データとしてユーザー10名・ツイート10件・リプライ10件が登録されます。
+パスワードは全員 `password123` です（bcrypt でハッシュ化して保存）。
+
+シーダーはデータの種類ごとに分けてあり、`DatabaseSeeder` が外部キーの依存順に呼び出します。
+
+| シーダー | 内容 |
+| --- | --- |
+| [UserSeeder](database/seeders/UserSeeder.php) | ユーザー10名 |
+| [TweetSeeder](database/seeders/TweetSeeder.php) | ツイート10件 |
+| [ReplySeeder](database/seeders/ReplySeeder.php) | リプライ10件 |
+
+いずれも `firstOrCreate()` を使っているため、`php artisan db:seed` を複数回実行しても重複登録されません。
+データを作り直す場合は `php artisan migrate:fresh --seed`、特定のシーダーだけ実行する場合は `php artisan db:seed --class=TweetSeeder` を使います。
 
 <details>
-<summary>SQL を直接実行する場合</summary>
+<summary>素の SQL について</summary>
 
-学習時に使用した素の SQL も同梱しています。
-
-```bash
-mysql -u root < database/sql/twitter_database_setup.sql
-mysql -u root < database/sql/twitter_database_inserts.sql
-```
+`database/sql/` に、Laravel へ移行する前の MySQL 用 SQL を残しています。
+現在はシーダーがこの役割を担っているため、セットアップでは使用しません。
 
 </details>
 
@@ -165,7 +175,12 @@ composer dev
 ```
 
 ブラウザで <http://localhost:8000> を開くと「画面一覧」が表示されます。
-「ユーザー追加画面」からユーザーを登録し、そのままダッシュボードに遷移します。
+初期データを投入済みであれば、「ログイン画面」から以下でログインできます。
+
+```
+メールアドレス: john@john.com
+パスワード:     password123
+```
 
 ## テスト
 
@@ -192,8 +207,14 @@ app/
     ├── Tweet.php
     └── Reply.php
 database/
+├── factories/                # UserFactory（※スキーマ未対応、課題参照）
 ├── migrations/               # users / tweets / replys
-└── sql/                      # 学習時に使用した素の SQL
+├── seeders/
+│   ├── DatabaseSeeder.php    # 呼び出し順の管理のみ
+│   ├── UserSeeder.php
+│   ├── TweetSeeder.php
+│   └── ReplySeeder.php
+└── sql/                      # 移行前の素の SQL（現在は未使用）
 mermaid/                      # ER 図・画面遷移図・シーケンス図
 resources/views/
 ├── index.blade.php           # TOP（画面一覧）
@@ -215,17 +236,32 @@ routes/
 - **リレーション** — `Tweet` / `Reply` から `belongsTo(User::class)` で投稿者名を解決しています。
 - **ミドルウェアによる保護** — ログイン後の画面は `Route::middleware(['auth', 'verified'])->group()` でまとめて保護しています。
 - **バリデーション** — 投稿フォームは `$request->validate()` でチェックし、エラー時は `old()` で入力値を復元します。
+- **パスワードのハッシュ化** — `User` モデルの `'password' => 'hashed'` キャストにより、代入した平文が自動的に bcrypt になります。素の PHP 版で自分で書いていた `hash('sha256', ...)` が不要になった部分です。
+- **シーダーの分割** — 種類ごとに `UserSeeder` / `TweetSeeder` / `ReplySeeder` に分け、`DatabaseSeeder` は `$this->call()` で順番を管理するだけにしています。`user_id` / `tweet_id` は直書きせず `pluck('id', 'email')` で引くため、AUTO_INCREMENT の採番に依存しません。
+- **bcrypt のコスト対策** — bcrypt は1件あたり約 0.24 秒かかるため、シーダーでは `Hash::make()` の結果を一度だけ作って使い回しています。
 
 ## 既知の課題 / 今後の対応
 
 学習過程の成果物のため、以下が未解決のまま残っています。
 
-- [ ] **パスワードハッシュの方式が混在している** — `UserController@store` は `hash('sha256', ...)` で保存する一方、Breeze のログインは bcrypt（`Hash::check`）で検証します。`/users/create` で登録したユーザーは `/login` からログインできないため、`Hash::make()` に統一する必要があります。
+### パスワード周り
+
+Breeze の認証コントローラー（登録 / パスワード変更 / パスワードリセット）は bcrypt に統一済みです。残っているのは `UserController` 側の2点です。
+
+- [ ] **`UserController@store` でパスワードが保存されない** — `$request->paasword`（`password` の綴り誤り。かつフォームの項目名は `psw`）を参照しているため `null` が入り、`users.password` の NOT NULL 制約違反になります。正しくは `$request->psw` です。
+- [ ] **`UserController@authenticate` のパスワード照合が無効** — `->where('password', ...)` がコメントアウトされており、メールアドレスだけで認証が通る状態です。bcrypt はハッシュごとにソルトが異なるため等価比較では照合できません。`Hash::check()` または `Auth::attempt()` への置き換えが必要です（なお、このメソッドへのルートは未読み込みの `routes/sampleweb.php` 側にしかなく、現在は到達不可）。
+
+### 認証機能の未整備
+
 - [ ] **Breeze 標準の `/register` が動作しない** — `RegisteredUserController@store` が `name` カラム前提のままで、本アプリの `users` テーブル（`first_name` / `last_name`）と一致していません。ユーザー登録は `/users/create` を使用します。
 - [ ] **パスワードリセットが使えない** — `password_reset_tokens` テーブルのマイグレーションがないため、`/forgot-password` はエラーになります。
 - [ ] **`remember_token` / `email_verified_at` カラムが未作成** — ログイン時の「ログイン状態を保持する」やメール認証は機能しません。
-- [ ] **Breeze 付属テストがスキーマと不整合** — `UserFactory` および `tests/Feature/Auth` 配下のテストを `first_name` / `last_name` 構成に合わせる必要があります。
+
+### テスト / 不要ファイル
+
+- [ ] **ファクトリがスキーマと不整合** — `UserFactory` が `name` カラム前提のままで、`tests/Feature/Auth` 配下のテストが失敗します。`UserFactoryTest` はスキーマに沿っていますが、`User::factory()` が探すのは `UserFactory` という命名規約のため使用されません。また `fake()->first_name()` は存在しないフォーマッタで、正しくは `fake()->firstName()` です。
 - [ ] **`routes/sampleweb.php` が未使用** — `bootstrap/app.php` から読み込まれていない学習初期のルート定義です。整理対象。
+- [ ] **`database/seeders/sample.php` が不要** — ファイル名とクラス名（`DatabaseSeeder`）が一致しておらずオートロードされません。参照している `ItemTableSeeder` も存在しません。
 - [ ] **`database/database.sqlite` が残存** — MySQL に移行済みのため不要。
 - [ ] Blade 内に残っている学習メモ・コメントアウトの整理。
 

@@ -1,16 +1,6 @@
 <x-guest-layout>
     <form method="POST" action="{{ route('register') }}">
         @csrf
-
-  
-        <!-- Name -->
-        <!-- 20260630 ここを書き換えるfirst_name,last_nameにする  
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
-        -->
         <!-- first_name -->
         <div class="mt-4">
             <x-input-label for="first_name" :value="__('First Name')" />

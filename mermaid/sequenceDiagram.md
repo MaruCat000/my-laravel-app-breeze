@@ -2,33 +2,34 @@
 
 ## 新規ユーザー登録
 
-Breeze の `/register` ではなく、`UserController` 経由の登録フローです。
+Breeze の `/register` 経由の登録フローです（動作する経路）。
 
 ```mermaid
 sequenceDiagram
     actor U as ユーザー
     participant B as ブラウザ
-    participant C as UserController
+    participant C as RegisteredUserController
     participant M as User モデル
     participant DB as DB（users）
 
-    U->>B: GET /users/create
+    U->>B: GET /register
     B->>C: create()
-    C-->>B: users/create.blade 表示
-    U->>B: フォーム送信 POST /users/store
+    C-->>B: auth/register.blade 表示
+    U->>B: フォーム送信 POST /register
     B->>C: store(Request)
-    C->>C: validate（fname, lname, email は unique, psw）
+    C->>C: validate（first_name, last_name, email は unique, password は confirmed）
     alt バリデーションNG
         C-->>B: エラーと old() 付きで入力画面へ戻る
     else バリデーションOK
-        C->>C: hash sha256 でパスワードをハッシュ化
-        C->>M: new User に代入して save()
+        C->>M: User::create() に検証済みの $validated を渡す
+        M->>M: 'password' => 'hashed' キャストが平文を bcrypt 化
         M->>DB: INSERT
-        C->>C: Auth::login(user)
-        C-->>B: view('dashboard') を返す
+        C->>C: event(new Registered) / Auth::login(user)
+        C-->>B: /dashboard へリダイレクト
     end
-    Note over C,DB: パスワードは sha256、Breeze のログインは bcrypt で照合するため<br>この経路で登録したユーザーは /login からログインできない
 ```
+
+`UserController@store`（`/users/store`）にも登録処理がありますが、パスワードの参照先が誤っていて未修正のため、こちらは図に含めていません。
 
 ## ログイン
 
@@ -58,6 +59,33 @@ sequenceDiagram
     end
 ```
 
+bcrypt はハッシュごとにソルトが異なるため、`WHERE password = ?` のような等価比較では照合できません。
+`Auth::attempt()` が内部で `Hash::check()` を呼び、ハッシュに埋め込まれたソルトを使って突き合わせます。
+
+## パスワード変更
+
+```mermaid
+sequenceDiagram
+    actor U as ユーザー
+    participant B as ブラウザ
+    participant P as PasswordController
+    participant M as User モデル
+    participant DB as DB（users）
+
+    U->>B: /profile のパスワード変更フォームを送信 PUT /password
+    B->>P: update(Request)
+    P->>P: validateWithBag('updatePassword')
+    P->>DB: current_password ルールが Hash::check() で現在のパスワードを検証
+    alt 検証NG
+        P-->>B: updatePassword バッグのエラーを添えて戻る
+    else 検証OK
+        P->>M: update() に検証済みの $validated を渡す
+        M->>M: 'password' => 'hashed' キャストが bcrypt 化
+        M->>DB: UPDATE
+        P-->>B: status=password-updated を添えて戻る
+    end
+```
+
 ## ログアウト
 
 ```mermaid
@@ -68,7 +96,7 @@ sequenceDiagram
 
     U->>B: ナビのドロップダウンから POST /logout
     B->>A: destroy(Request)
-    A->>A: Auth::guard('web')->logout()
+    A->>A: Auth::guard('web') でログアウト
     A->>A: セッションを破棄してトークンを再生成
     A-->>B: / へリダイレクト
 ```

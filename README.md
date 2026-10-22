@@ -255,7 +255,6 @@ Breeze の認証コントローラー（登録 / ログイン / パスワード�
 
 - [ ] **パスワードリセットが使えない** — `password_reset_tokens` テーブルのマイグレーションがないため、`/forgot-password` はエラーになります。
 - [ ] **`remember_token` / `email_verified_at` カラムが未作成** — ログイン時の「ログイン状態を保持する」やメール認証は機能しません。`NewPasswordController` の `remember_token` 更新はこのためコメントアウトしています。
-- [ ] **`register.blade.php` に未使用の `name` 入力が残っている** — サーバー側は `first_name` / `last_name` のみ検証するため値は無視されますが、画面上は氏名の入力欄が3つ並びます。
 
 ### テスト / 整理
 

@@ -249,7 +249,8 @@ routes/
 - [ ] **`UserFactory` がスキーマと不整合（テスト17件が失敗）** — `name` / `email_verified_at` / `remember_token` を前提にしているため、存在しないカラムへの `INSERT` で落ちます。`first_name` / `last_name` 構成に直す必要があります。
 - [ ] **`UserFactoryTest` が使用されない** — スキーマには沿っていますが、`User::factory()` が探すのは `UserFactory` という命名規約のため読み込まれません。また `fake()->first_name()` は存在しないフォーマッタで、正しくは `fake()->firstName()` です。
 - [ ] **シーダーが生 SQL に依存している** — データベース名が `twitter` 固定（SQL 内の `USE twitter;`）で、再実行すると重複します。Eloquent ベースのシーダーに分割すれば解消できます。
-- [ ] **`routes/sampleweb.php` が未使用** — `bootstrap/app.php` から読み込まれていない学習初期のルート定義です。削除済みの `UserController` を参照しているため、読み込むとエラーになります。整理対象。- [ ] **`database/seeders/sample.php` が不要** — ファイル名とクラス名（`DatabaseSeeder`）が一致しておらずオートロードされません。参照している `ItemTableSeeder` も存在しません。
+- [ ] **`routes/sampleweb.php` が未使用** — `bootstrap/app.php` から読み込まれていない学習初期のルート定義です。削除済みの `UserController` を参照しているため、読み込むとエラーになります。整理対象。
+- [ ] **`database/seeders/sample.php` が不要** — ファイル名とクラス名（`DatabaseSeeder`）が一致しておらずオートロードされません。参照している `ItemTableSeeder` も存在しません。
 - [ ] **`database/database.sqlite` が残存** — MySQL に移行済みのため不要。
 - [ ] Blade 内に残っている学習メモ・コメントアウトの整理。
 

@@ -17,15 +17,13 @@ Laravel 12 + Laravel Breeze で作った、Twitter ライクな **ツイート�
 | ツイート投稿 | `GET /tweets/create` → `POST /tweets` | `TweetController@create,store` |
 | ツイート詳細（返信一覧） | `GET /tweets/{tweet}` | `TweetController@show` |
 | 返信投稿 | `GET /replys/create/{tweet}` → `POST /replys/{tweet}` | `ReplyController@create,store` |
-| ユーザー一覧 | `GET /users` | `UserController@index` |
 | プロフィール編集 / 削除 | `GET,PATCH,DELETE /profile` | Breeze `ProfileController` |
 | パスワード変更 | `PUT /password` | Breeze `PasswordController` |
 
 `/dashboard` 以降の画面は `auth` / `verified` ミドルウェアで保護しています。
 
-> [!IMPORTANT]
-> ユーザー登録の経路が2系統あります。動作するのは Breeze の **`/register`** です。
-> TOP ページの「ユーザー追加画面」ボタンが指している `UserController` 側（`/users/create` → `/users/store`）は未修正で、登録が完了しません（[既知の課題](#usercontroller独自のユーザー登録--ログイン) 参照）。
+ユーザー登録・ログインは Breeze の認証機能に一本化しています。TOP ページの「ユーザー追加画面」ボタンも `/register` に遷移します。
+学習初期に作った独自の `UserController`（ユーザー一覧 / 登録 / ログイン）と、そのビュー（`resources/views/users/`）は削除しました。
 
 ## 技術スタック
 
@@ -174,7 +172,7 @@ composer dev
 パスワード:     password123
 ```
 
-新しくユーザーを作る場合は <http://localhost:8000/register> を直接開いてください。
+新しくユーザーを作る場合は、画面一覧の「ユーザー追加画面」から登録してください（<http://localhost:8000/register>）。
 
 ## テスト
 
@@ -197,8 +195,7 @@ app/
 │   ├── Auth/                 # Breeze の認証コントローラー群
 │   ├── ProfileController.php # プロフィール編集（Breeze）
 │   ├── TweetController.php   # ツイート一覧 / 投稿 / 詳細
-│   ├── ReplyController.php   # 返信の表示 / 投稿
-│   └── UserController.php    # ユーザー一覧 / 登録（※課題参照）
+│   └── ReplyController.php   # 返信の表示 / 投稿
 └── Models/
     ├── User.php
     ├── Tweet.php
@@ -218,7 +215,6 @@ resources/views/
 ├── dashboard.blade.php       # ツイート一覧
 ├── tweet/                    # create / show
 ├── reply/                    # create
-├── users/                    # index / create / update
 └── auth/, profile/, layouts/, components/   # Breeze 由来
 routes/
 ├── web.php                   # 実際に使用しているルート定義
@@ -243,14 +239,6 @@ routes/
 
 学習過程の成果物のため、以下が未解決のまま残っています。
 
-### UserController（独自のユーザー登録 / ログイン）
-
-Breeze の認証コントローラー（登録 / ログイン / パスワード変更 / パスワードリセット）は bcrypt に統一済みです。残っているのは `UserController` 側です。
-
-- [ ] **`UserController@store` でパスワードが保存されない** — `$request->paasword`（`password` の綴り誤り。かつフォームの項目名は `psw`）を参照しているため `null` が入り、`users.password` の NOT NULL 制約違反になります。正しくは `$request->psw` です。
-- [ ] **TOP ページのボタンが壊れている側を指している** — `index.blade.php` の「ユーザー追加画面」が `users.create` に向いているため、上記の理由で登録が完了しません。動作する `/register` に向けるか、`UserController@store` を修正する必要があります。
-- [ ] **`UserController@authenticate` のパスワード照合が無効** — `->where('password', ...)` がコメントアウトされており、メールアドレスだけで認証が通る状態です。bcrypt はソルトが毎回異なるため等価比較では照合できず、`Hash::check()` または `Auth::attempt()` への置き換えが必要です。なおこのメソッドへのルートは未読み込みの `routes/sampleweb.php` 側にしかなく、現在は到達不可です。
-
 ### 認証機能の未整備
 
 - [ ] **パスワードリセットが使えない** — `password_reset_tokens` テーブルのマイグレーションがないため、`/forgot-password` はエラーになります。
@@ -261,8 +249,7 @@ Breeze の認証コントローラー（登録 / ログイン / パスワード�
 - [ ] **`UserFactory` がスキーマと不整合（テスト20件が失敗）** — `name` / `email_verified_at` / `remember_token` を前提にしているため、存在しないカラムへの `INSERT` で落ちます。`first_name` / `last_name` 構成に直す必要があります。
 - [ ] **`UserFactoryTest` が使用されない** — スキーマには沿っていますが、`User::factory()` が探すのは `UserFactory` という命名規約のため読み込まれません。また `fake()->first_name()` は存在しないフォーマッタで、正しくは `fake()->firstName()` です。
 - [ ] **シーダーが生 SQL に依存している** — データベース名が `twitter` 固定（SQL 内の `USE twitter;`）で、再実行すると重複します。Eloquent ベースのシーダーに分割すれば解消できます。
-- [ ] **`routes/sampleweb.php` が未使用** — `bootstrap/app.php` から読み込まれていない学習初期のルート定義です。整理対象。
-- [ ] **`database/seeders/sample.php` が不要** — ファイル名とクラス名（`DatabaseSeeder`）が一致しておらずオートロードされません。参照している `ItemTableSeeder` も存在しません。
+- [ ] **`routes/sampleweb.php` が未使用** — `bootstrap/app.php` から読み込まれていない学習初期のルート定義です。削除済みの `UserController` を参照しているため、読み込むとエラーになります。整理対象。- [ ] **`database/seeders/sample.php` が不要** — ファイル名とクラス名（`DatabaseSeeder`）が一致しておらずオートロードされません。参照している `ItemTableSeeder` も存在しません。
 - [ ] **`database/database.sqlite` が残存** — MySQL に移行済みのため不要。
 - [ ] Blade 内に残っている学習メモ・コメントアウトの整理。
 

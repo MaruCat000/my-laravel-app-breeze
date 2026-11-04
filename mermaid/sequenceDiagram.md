@@ -2,7 +2,7 @@
 
 ## 新規ユーザー登録
 
-Breeze の `/register` 経由の登録フローです（動作する経路）。
+Breeze の `/register` 経由の登録フローです。TOP ページの「ユーザー追加画面」ボタンからここに遷移します。
 
 ```mermaid
 sequenceDiagram
@@ -28,8 +28,6 @@ sequenceDiagram
         C-->>B: /dashboard へリダイレクト
     end
 ```
-
-`UserController@store`（`/users/store`）にも登録処理がありますが、パスワードの参照先が誤っていて未修正のため、こちらは図に含めていません。
 
 ## ログイン
 

@@ -6,10 +6,9 @@
 ```mermaid
 flowchart TD
     Start([ブラウザアクセス]) --> Root["GET /<br>index.blade（画面一覧）"]
-    Direct([URL を直接入力]) --> RegisterGet["GET /register<br>RegisteredUserController@create"]
 
     Root -->|ログイン画面ボタン| LoginGet["GET /login<br>AuthenticatedSessionController@create"]
-    Root -->|ユーザー追加画面ボタン| UserCreate["GET /users/create<br>UserController@create"]
+    Root -->|ユーザー追加画面ボタン| RegisterGet["GET /register<br>RegisteredUserController@create"]
 
     LoginGet --> LoginView["auth/login.blade"]
     LoginView -->|POST /login| LoginPost["AuthenticatedSessionController@store<br>LoginRequest::authenticate()"]
@@ -20,10 +19,6 @@ flowchart TD
     RegisterView -->|POST /register| RegisterPost["RegisteredUserController@store<br>validate → User::create → Auth::login()"]
     RegisterPost -->|dashboard へリダイレクト| Dashboard
 
-    UserCreate --> UserCreateView["users/create.blade<br>fname / lname / email / psw"]
-    UserCreateView -->|TOPへ戻る| Root
-    UserCreateView -->|POST /users/store| UserStore["UserController@store<br>※未修正：password が null になり<br>NOT NULL 制約違反で失敗する"]
-
     subgraph AUTH["ログイン後（middleware: auth, verified）"]
         Dashboard["GET /dashboard<br>TweetController@index<br>Tweet::with user で一覧取得<br>dashboard.blade"]
         TweetCreate["GET /tweets/create<br>TweetController@create<br>tweet/create.blade"]
@@ -33,7 +28,6 @@ flowchart TD
         ReplyStore["POST /replys/{tweet}<br>ReplyController@store"]
         Profile["GET /profile<br>ProfileController@edit<br>profile/edit.blade"]
         PasswordUpdate["PUT /password<br>PasswordController@update"]
-        Users["GET /users<br>UserController@index<br>users/index.blade"]
         Logout["POST /logout<br>AuthenticatedSessionController@destroy"]
     end
 
@@ -51,15 +45,11 @@ flowchart TD
     PasswordUpdate -->|profile へ戻る| Profile
     Dashboard -->|ナビのドロップダウン| Logout
     Logout -->|/ へリダイレクト| Root
-
-    %% GET /register と GET /users はどの画面からもリンクされておらず、URL 直打ちでのみ到達可能
 ```
 
 ## 補足
 
-- **ユーザー登録の経路は2系統あります。** 動作するのは Breeze の `/register` です。TOP ページの「ユーザー追加画面」ボタンは `UserController` 側（`/users/create` → `/users/store`）に向いていますが、`UserController@store` が未修正のため登録が完了しません。
-- `/register` はどの画面からもリンクされていないため、URL を直接開く必要があります（`samplewelcome.blade.php` にリンクがありますが、このビューはルーティングされていません）。
+- ユーザー登録は Breeze の `/register` に一本化しています。TOP ページの「ユーザー追加画面」ボタンから遷移します（独自の `UserController` は削除済み）。
 - `/dashboard` が `TweetController@index`（ツイート一覧）を兼ねています。
 - `verified` ミドルウェアは付与していますが、`User` モデルが `MustVerifyEmail` を実装していないため実質的に素通りします。
-- `GET /users`（ユーザー一覧）はルートとしては存在しますが、どの画面からもリンクされていません。
 - パスワードリセット（`/forgot-password` → `/reset-password/{token}`）は `password_reset_tokens` テーブルがないため動作せず、この図からは省いています。

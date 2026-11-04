@@ -15,7 +15,7 @@
             <input type="submit" value="ログイン画面" class="button-style">
         </form>
         <br>
-        <form method="GET" action="{{ route('users.create') }}">
+        <form method="GET" action="{{ route('register') }}">
             @csrf
             <input type="submit" value="ユーザー追加画面" class="button-style">
         </form>

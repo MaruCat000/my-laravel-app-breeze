@@ -4,7 +4,8 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // UserControllerをuseしておく
-use App\Http\Controllers\UserController;
+// 20261104 UserController削除につきコメントアウト
+//use App\Http\Controllers\UserController;
 // TweetControllerをuseしておく
 use App\Http\Controllers\TweetController;
 // ReplyControllerをuseしておく
@@ -59,7 +60,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // --- ユーザー管理関連 ---
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    // 20261104 UserController削除につきコメントアウト
+    //Route::get('/users', [UserController::class, 'index'])->name('users.index');
     
 
 
@@ -74,8 +76,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 新規ユーザー登録画面へのルーティング（RegisteredUserControllerを使う場合） 
     //Route::get('/users/create', [RegisteredUserController::class, 'create'])->name('users.create');
     // 20260826 違う。RegisteredUserControllerはユーザー編集のみ。新規追加は別。
-    Route::get('/users/create',[UserController::class,'create'])->name('users.create');
-    Route::post('/users/store',[UserController::class,'store'])->name('users.store');
+    // 20261104 UserController削除につきコメントアウト
+    //Route::get('/users/create',[UserController::class,'create'])->name('users.create');
+    //Route::post('/users/store',[UserController::class,'store'])->name('users.store');
     // 20260916 ユーザー追加後のダッシュボードへの遷移：ミドルウェアのAuthのそと
     
 

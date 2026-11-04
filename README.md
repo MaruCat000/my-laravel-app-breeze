@@ -242,7 +242,7 @@ routes/
 ### 認証機能の未整備
 
 - [ ] **パスワードリセットは無効化中** — `password_reset_tokens` テーブルがないため、`routes/auth.php` の `/forgot-password`・`/reset-password` ルートをコメントアウトしています（ログイン画面のリンクも非表示）。使う場合はマイグレーションを追加してルートを戻します。
-- [ ] **`remember_token` / `email_verified_at` カラムが未作成** — ログイン時の「ログイン状態を保持する」やメール認証は機能しません。`NewPasswordController` の `remember_token` 更新はこのためコメントアウトしています。
+- [ ] **`remember_token` / `email_verified_at` は無効化中** — カラムがないため、`User` モデルで `$rememberTokenName = false` にして「ログイン状態を保持する」を無効にし、ログイン画面のチェックボックスも非表示にしています。`email_verified_at` は `User` のキャストと `ProfileController` のメール変更時の代入をコメントアウトしています（`User` が `MustVerifyEmail` を実装していないのでメール認証も行われません）。`NewPasswordController` の `remember_token` 更新も同じ理由でコメントアウトしています。使う場合はカラムを追加して元に戻します。
 
 ### テスト / 整理
 

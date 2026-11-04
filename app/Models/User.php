@@ -17,6 +17,10 @@ class User extends Authenticatable
     // デフォルトで有効になっているがDB構造と違うのであるとエラーする
     public $timestamps = false;
 
+    // 20261104 usersテーブルにremember_tokenカラムがないので「ログイン状態を保持する」を無効にする
+    // 空（false）にするとLaravelがremember_tokenの読み書きをしなくなる
+    protected $rememberTokenName = false;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -56,7 +60,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            // 20261104 usersテーブルにemail_verified_atカラムがないのでコメントアウト
+            //'email_verified_at' => 'datetime',
             // 20261007 ここを書き換える：hash256にあわせる
             // 20261007 ここが問題。二重ハッシュになっているので、コメントアウトする
             // 20261009 Seederを直したので、コメントアウトは戻す

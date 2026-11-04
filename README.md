@@ -185,7 +185,7 @@ php artisan test
 テストは `:memory:` の SQLite で実行されるため、開発用の MySQL には影響しません。
 
 > [!WARNING]
-> 現状 **20 件が失敗 / 5 件が成功** します。同梱のテストは Breeze 標準のもので、`UserFactory` が `name` カラム前提のままのため、`table users has no column named name` で落ちます。詳細は [既知の課題](#テスト--整理) を参照してください。
+> 現状 **17 件が失敗 / 4 件がスキップ / 4 件が成功** します。スキップはパスワードリセットの無効化に伴う `PasswordResetTest` です。同梱のテストは Breeze 標準のもので、`UserFactory` が `name` カラム前提のままのため、`table users has no column named name` で落ちます。詳細は [既知の課題](#テスト--整理) を参照してください。
 
 ## ディレクトリ構成（主要部分）
 
@@ -241,12 +241,12 @@ routes/
 
 ### 認証機能の未整備
 
-- [ ] **パスワードリセットが使えない** — `password_reset_tokens` テーブルのマイグレーションがないため、`/forgot-password` はエラーになります。
+- [ ] **パスワードリセットは無効化中** — `password_reset_tokens` テーブルがないため、`routes/auth.php` の `/forgot-password`・`/reset-password` ルートをコメントアウトしています（ログイン画面のリンクも非表示）。使う場合はマイグレーションを追加してルートを戻します。
 - [ ] **`remember_token` / `email_verified_at` カラムが未作成** — ログイン時の「ログイン状態を保持する」やメール認証は機能しません。`NewPasswordController` の `remember_token` 更新はこのためコメントアウトしています。
 
 ### テスト / 整理
 
-- [ ] **`UserFactory` がスキーマと不整合（テスト20件が失敗）** — `name` / `email_verified_at` / `remember_token` を前提にしているため、存在しないカラムへの `INSERT` で落ちます。`first_name` / `last_name` 構成に直す必要があります。
+- [ ] **`UserFactory` がスキーマと不整合（テスト17件が失敗）** — `name` / `email_verified_at` / `remember_token` を前提にしているため、存在しないカラムへの `INSERT` で落ちます。`first_name` / `last_name` 構成に直す必要があります。
 - [ ] **`UserFactoryTest` が使用されない** — スキーマには沿っていますが、`User::factory()` が探すのは `UserFactory` という命名規約のため読み込まれません。また `fake()->first_name()` は存在しないフォーマッタで、正しくは `fake()->firstName()` です。
 - [ ] **シーダーが生 SQL に依存している** — データベース名が `twitter` 固定（SQL 内の `USE twitter;`）で、再実行すると重複します。Eloquent ベースのシーダーに分割すれば解消できます。
 - [ ] **`routes/sampleweb.php` が未使用** — `bootstrap/app.php` から読み込まれていない学習初期のルート定義です。削除済みの `UserController` を参照しているため、読み込むとエラーになります。整理対象。- [ ] **`database/seeders/sample.php` が不要** — ファイル名とクラス名（`DatabaseSeeder`）が一致しておらずオートロードされません。参照している `ItemTableSeeder` も存在しません。

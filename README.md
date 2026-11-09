@@ -202,13 +202,11 @@ app/
     └── Reply.php
 database/
 ├── factories/
-│   ├── UserFactory.php       # ※スキーマ未対応、課題参照
-│   └── UserFactoryTest.php   # ※命名規約から外れており未使用
+│   └── UserFactory.php       # ※スキーマ未対応、課題参照
 ├── migrations/               # users / tweets / replys
 ├── seeders/
-│   ├── DatabaseSeeder.php    # 初期データ投入（生SQL + Hash::make）
-│   └── sample.php            # ※未使用、課題参照
-└── sql/                      # 素の PHP 版から引き継いだ SQL
+│   └── DatabaseSeeder.php    # 初期データ投入（生SQL + Hash::make）
+└── sql/                      # 素の PHP 版から引き継いだ INSERT 文
 mermaid/                      # ER 図・画面遷移図・シーケンス図
 resources/views/
 ├── index.blade.php           # TOP（画面一覧）
@@ -218,8 +216,7 @@ resources/views/
 └── auth/, profile/, layouts/, components/   # Breeze 由来
 routes/
 ├── web.php                   # 実際に使用しているルート定義
-├── auth.php                  # Breeze の認証ルート
-└── sampleweb.php             # 学習初期のルート（未読み込み）
+└── auth.php                  # Breeze の認証ルート
 ```
 
 ## 実装のポイント
@@ -246,13 +243,8 @@ routes/
 
 ### テスト / 整理
 
-- [ ] **`UserFactory` がスキーマと不整合（テスト17件が失敗）** — `name` / `email_verified_at` / `remember_token` を前提にしているため、存在しないカラムへの `INSERT` で落ちます。`first_name` / `last_name` 構成に直す必要があります。
-- [ ] **`UserFactoryTest` が使用されない** — スキーマには沿っていますが、`User::factory()` が探すのは `UserFactory` という命名規約のため読み込まれません。また `fake()->first_name()` は存在しないフォーマッタで、正しくは `fake()->firstName()` です。
+- [ ] **`UserFactory` がスキーマと不整合（テスト17件が失敗）** — `name` / `email_verified_at` / `remember_token` を前提にしているため、存在しないカラムへの `INSERT` で落ちます。`first_name` / `last_name` 構成に直す必要があります（フォーマッタは `fake()->firstName()` / `fake()->lastName()`）。
 - [ ] **シーダーが生 SQL に依存している** — データベース名が `twitter` 固定（SQL 内の `USE twitter;`）で、再実行すると重複します。Eloquent ベースのシーダーに分割すれば解消できます。
-- [ ] **`routes/sampleweb.php` が未使用** — `bootstrap/app.php` から読み込まれていない学習初期のルート定義です。削除済みの `UserController` を参照しているため、読み込むとエラーになります。整理対象。
-- [ ] **`database/seeders/sample.php` が不要** — ファイル名とクラス名（`DatabaseSeeder`）が一致しておらずオートロードされません。参照している `ItemTableSeeder` も存在しません。
-- [ ] **`database/database.sqlite` が残存** — MySQL に移行済みのため不要。
-- [ ] Blade 内に残っている学習メモ・コメントアウトの整理。
 
 ## ライセンス
 

@@ -13,13 +13,6 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            /* 20260525 型を指定しないとエラーする
-            $table->first_name();
-            $table->last_name();
-            $table->email();
-            $table->password();
-            */
-
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email')->unique(); // メールアドレスは重複しないようにuniqueを付けるのが一般的

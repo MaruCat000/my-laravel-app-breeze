@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-// 20261009 sha256を使わなくなったので不要になる
-// use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller

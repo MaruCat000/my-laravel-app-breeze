@@ -13,11 +13,7 @@ return new class extends Migration
     {
         Schema::create('replys', function (Blueprint $table) {
             $table->id();
-            //$table->tweet_id();
-            //  修正後（よくある型指定）
             $table->foreignId('tweet_id')->constrained('tweets')->onDelete('cascade');
-            //$table->user_id();
-            //  修正後（よくある型指定）
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->text('reply');
         });

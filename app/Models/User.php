@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,30 +9,12 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    // タイムスタンプの自動更新を無効にする
-    // デフォルトで有効になっているがDB構造と違うのであるとエラーする
     public $timestamps = false;
 
-    // 20261104 usersテーブルにremember_tokenカラムがないので「ログイン状態を保持する」を無効にする
-    // 空（false）にするとLaravelがremember_tokenの読み書きをしなくなる
     protected $rememberTokenName = false;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-
-    /* 20260630 breezeを使うためにここをmigrationとseederにあわせる
-       protected $fillable = [
-        'name',
-        'email',
-        'password',
-
- */
         protected $fillable = [
         'first_name',
         'last_name',
@@ -41,30 +22,14 @@ class User extends Authenticatable
         'password',
     ];
 
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            // 20261104 usersテーブルにemail_verified_atカラムがないのでコメントアウト
-            //'email_verified_at' => 'datetime',
-            // 20261007 ここを書き換える：hash256にあわせる
-            // 20261007 ここが問題。二重ハッシュになっているので、コメントアウトする
-            // 20261009 Seederを直したので、コメントアウトは戻す
             'password' => 'hashed',
         ];
     }

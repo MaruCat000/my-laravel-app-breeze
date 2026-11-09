@@ -28,7 +28,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // 20260708 この部分でダッシュボードへの遷移になっている
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

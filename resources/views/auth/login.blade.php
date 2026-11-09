@@ -1,14 +1,10 @@
 <x-guest-layout>
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
-
-<!-- ここのactionでログイン後の遷移先を指定している
- UserControllerのauthenticateメソッドへ遷移 -->        
+       
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-<!-- 20260630 ここを書き換えていく。必要な項目にする -->
-<!-- 20260630 ちゃんとemailとpasswrdになっている -->
         <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email')" />
@@ -27,16 +23,6 @@
 
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
-
-        {{-- 20261104 remember_tokenを無効にしたのでチェックボックスを非表示にする（User::$rememberTokenName = false）
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-        --}}
 
         <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))

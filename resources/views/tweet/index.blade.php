@@ -7,10 +7,6 @@
     <title>Document</title>
 </head>
 <body>
-<!-- ここでsession試してみる -->
-    <!--{{ session('user_id') }}
-    <br>
--->
     こんにちは、{{ session('user_name') }}さん
     <h1>投稿一覧</h1>
     <table>
@@ -26,9 +22,6 @@
         @forelse ($tweets as $tweet)
             <tr>
                 <td>{{ $tweet->id }}</td>
-                <!-- このように単純にnameはtableに存在しない。存在するカラム名で一工夫する
-                <td>{{ $tweet->user->name }}</td>
-                -->
                 <td>{{ ($tweet->user->first_name ?? '') . ' ' . ($tweet->user->last_name ?? '') }}</td>
                 <td>{!! nl2br(e($tweet->tweet)) !!}</td>
             </tr>            
@@ -38,7 +31,6 @@
             </ul>
         @endforelse
     </table>
-    <!-- この辺りにツイート投稿ボタン -->
     <form method="GET">
         @csrf
         <input type="submit" value="ツイート投稿" class="button-style">

@@ -21,22 +21,6 @@ Route::middleware('guest')->group(function () {
         ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
-
-    // 20261104 password_reset_tokensテーブルがないのでパスワードリセットを無効にする
-    // （ルートがないとlogin画面の「Forgot your password?」リンクも自動で非表示になる）
-    /*
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
-        ->name('password.request');
-
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->name('password.email');
-
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
-        ->name('password.reset');
-
-    Route::post('reset-password', [NewPasswordController::class, 'store'])
-        ->name('password.store');
-    */
 });
 
 Route::middleware('auth')->group(function () {

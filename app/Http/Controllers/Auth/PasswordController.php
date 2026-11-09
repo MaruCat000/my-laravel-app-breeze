@@ -21,18 +21,8 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        // 20261009 Seederで解決してBcryptにしたのでここのsha256をもどす
-        // pswに関して、ハッシュ化して保存する
-
-        //$inputPassword = hash("sha256", $request->input('password'));
-
         $request->user()->update([
-            // 20261007 ここを書き換える：hash256にあわせる
-            // 20261009 Seederで解決してBcryptにしたのでここのsha256をもどす
-            // 20261009 せっかくなのでヴァリデーション済みの値をつかう
-            //'password' => $request -> password,
             'password' => $validated['password'],
-
         ]);
 
         return back()->with('status', 'password-updated');

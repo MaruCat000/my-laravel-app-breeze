@@ -17,8 +17,6 @@ class LoginRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // ここが true を返すと、次のバリデーション（rules()）に進める
-        // ここが false を返すと、その時点で「403 Forbidden」エラーを返して処理を却下する
         return true;
     }
 
